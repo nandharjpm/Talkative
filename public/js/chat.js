@@ -178,17 +178,34 @@ $(function () {
     loadRequestCounts();
 
     // Add a message to the current conversation.
+
     function renderMessage(message) {
-        const isMine = Number(message.sender_id) === Number(
-            $('#chatPage').data('current-user-id')
-        );
+        if (!message || message.id == null) {
+            console.error('Invalid message response:', message);
+            return;
+        }
+
+        const $area = $('#messageArea');
+
+        if ($area.find('.message-row').filter(function () {
+            return String($(this).attr('data-message-id')) === String(message.id);
+        }).length) {
+            return;
+        }
+
+        // Remove the empty-chat placeholder before displaying a message.
+        $area.find('.empty-chat-note, .no-results').remove();
+
+        const currentUserId = Number($('#chatPage').attr('data-current-user-id'));
+        const isMine = Number(message.sender_id) === currentUserId;
 
         const text = message.body || message.message || '';
         const time = formatTime(message.created_at);
 
         const $row = $('<div>')
             .addClass('message-row')
-            .addClass(isMine ? 'sent' : 'received');
+            .addClass(isMine ? 'sent' : 'received')
+            .attr('data-message-id', message.id);
 
         const $content = $('<div>').addClass('message-content');
 
@@ -206,17 +223,19 @@ $(function () {
             const initials = message.sender_initials ||
                 (message.sender_name || 'U').substring(0, 2).toUpperCase();
 
-            const $avatar = $('<div>')
+            $('<div>')
                 .addClass('avatar avatar-blue tiny-avatar')
-                .text(initials);
-
-            $row.append($avatar);
+                .text(initials)
+                .appendTo($row);
         }
 
         $row.append($content);
+        $area.append($row);
 
-        $('#messageArea').append($row);
+        $area.scrollTop($area[0].scrollHeight);
     }
+
+
 
     // Load messages from Laravel.
     function loadMessages(conversationId) {
@@ -278,6 +297,7 @@ $(function () {
 
         setView('chats');
         loadMessages(activeConversationId);
+        subscribeToConversation(activeConversationId)
 
         $('#messageInput').trigger('focus');
     });
@@ -445,18 +465,20 @@ $(function () {
         });
 
     // Send a text message.
+
     $('#messageForm')
         .off('submit')
         .on('submit', function (event) {
             event.preventDefault();
 
             const $form = $(this);
+            const $input = $('#messageInput');
+            const $button = $('#sendButton');
+            const message = $.trim($input.val());
 
             if ($form.data('sending')) {
                 return;
             }
-
-            const message = $.trim($('#messageInput').val());
 
             if (!activeConversationId) {
                 notify('Select a conversation first.');
@@ -464,39 +486,68 @@ $(function () {
             }
 
             if (!message && !pendingFile) {
+                $input.trigger('focus');
                 return;
             }
 
+            // Keep the composer visible while sending.
+            $('#chatView').removeClass('hidden');
+            $form.removeClass('hidden').show();
+
+            $form.data('sending', true);
+            $button.prop('disabled', true);
+
             if (pendingFile) {
-                if ($form.data('sending')) {
-                    return;
-                }
-
-                $form.data('sending', true);
-                $('#sendButton').prop('disabled', true);
-
                 uploadAttachment(message);
                 return;
             }
 
-            $form.data('sending', true);
-            $('#sendButton').prop('disabled', true);
+            const conversationId = activeConversationId;
 
             $.ajax({
-                url: $('#chatPage').data('message-url') + '/' + activeConversationId + '/messages',
+                url: $('#chatPage').data('message-url') +
+                    '/' + conversationId + '/messages',
                 method: 'POST',
+                dataType: 'json',
                 data: {
-                    body: message
+                    body: message,
+                    _token: csrfToken
                 }
             })
                 .done(function (response) {
-                    $('#messageInput').val('');
+                    const sentMessage = response.message || response;
 
-                    renderMessage(response.message || response);
-                    notify('Message sent.');
+                    // Only clear the input after a successful response.
+                    $input.val('');
+
+                    renderMessage(sentMessage);
+
+                    // Update the existing conversation preview immediately.
+                    const $item = $(
+                        '#conversationList .conversation-item'
+                    ).filter(function () {
+                        return String($(this).attr('data-conversation-id')) ===
+                            String(conversationId);
+                    });
+
+                    if ($item.length) {
+                        $item.find('.conversation-copy p')
+                            .text(sentMessage.body || message);
+
+                        $item.detach().prependTo('#conversationList');
+                    }
+
+                    $('#chatView').removeClass('hidden');
+                    $form.removeClass('hidden').show();
+
+                    $input.trigger('focus');
                 })
                 .fail(function (xhr) {
-                    console.error('Send message error:', xhr.status, xhr.responseText);
+                    console.error(
+                        'Send message error:',
+                        xhr.status,
+                        xhr.responseText
+                    );
 
                     notify(
                         xhr.responseJSON?.message ||
@@ -504,10 +555,16 @@ $(function () {
                     );
                 })
                 .always(function () {
-                    $('#messageForm').removeData('sending');
-                    $('#sendButton').prop('disabled', false);
+                    $form.removeData('sending');
+
+                    $button.prop('disabled', false);
+                    $input.prop('disabled', false);
+
+                    $('#chatView').removeClass('hidden');
+                    $form.removeClass('hidden').show();
                 });
         });
+
 
     // Upload an attachment, optionally with a message.
     function uploadAttachment(message) {
@@ -519,12 +576,15 @@ $(function () {
             formData.append('body', message);
         }
 
+
         $.ajax({
-            url: $('#chatPage').data('attachment-url') + '/' + activeConversationId + '/attachments',
+            url: $('#chatPage').data('attachment-url') +
+                '/' + activeConversationId + '/attachments',
             method: 'POST',
             data: formData,
             processData: false,
-            contentType: false
+            contentType: false,
+            dataType: 'json'
         })
             .done(function (response) {
                 $('#messageInput').val('');
@@ -537,11 +597,27 @@ $(function () {
                 notify(response.message || 'Attachment sent.');
             })
             .fail(function (xhr) {
+                console.error(
+                    'Attachment upload error:',
+                    xhr.status,
+                    xhr.responseText
+                );
+
                 notify(
                     xhr.responseJSON?.message ||
                     'Unable to upload attachment.'
                 );
+            })
+            .always(function () {
+                $('#messageForm').removeData('sending');
+                $('#sendButton').prop('disabled', false);
+                $('#messageInput').prop('disabled', false);
+
+                $('#chatView').removeClass('hidden');
+                $('#messageForm').removeClass('hidden').show();
+                $('#messageInput').trigger('focus');
             });
+
     }
 
     // Attachment selection and preview.
@@ -629,4 +705,20 @@ $(function () {
         $('#sidebar').addClass('open');
         $('#userSearch').trigger('focus');
     });
+
+
+
+    function subscribeToConversation(conversationId) {
+        if (!window.Echo || !conversationId) {
+            return;
+        }
+
+        window.Echo.leave('conversation.' + conversationId);
+
+        window.Echo.private('conversation.' + conversationId)
+            .listen('.message.sent', function (event) {
+                renderMessage(event.message);
+            });
+    }
+
 });

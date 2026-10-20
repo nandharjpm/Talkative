@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\MessageSent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class MessageController extends Controller
 {
@@ -53,6 +55,14 @@ class MessageController extends Controller
 
     public function store(Request $request, $conversation)
     {
+
+        $startedAt = microtime(true);
+
+        Log::info('Chat message timing: store started', [
+            'time' => $startedAt,
+        ]);
+
+
         if (! $this->checkConversation($conversation)) {
             abort(404);
         }
@@ -75,7 +85,38 @@ class MessageController extends Controller
                 'updated_at' => now(),
             ]);
 
-        $message = DB::table('messages')->where('id', $messageId)->first();
+        $message = DB::table('messages')
+            ->join('users', 'users.id', '=', 'messages.sender_id')
+            ->where('messages.id', $messageId)
+            ->select(
+                'messages.id',
+                'messages.conversation_id',
+                'messages.sender_id',
+                'messages.type',
+                'messages.body',
+                'messages.created_at',
+                'users.name as sender_name',
+                'users.username as sender_username'
+            )
+            ->first();
+
+        $message->sender_initials = strtoupper(
+            substr($message->sender_name ?? 'U', 0, 2)
+        );
+
+        Log::info('Chat message timing: before broadcast', [
+            'elapsed_ms' => round((microtime(true) - $startedAt) * 1000, 2),
+        ]);
+
+        MessageSent::dispatch((array) $message);
+
+        Log::info('Chat message timing: after broadcast', [
+            'elapsed_ms' => round((microtime(true) - $startedAt) * 1000, 2),
+        ]);
+
+        Log::info('Chat message timing: response ready', [
+            'elapsed_ms' => round((microtime(true) - $startedAt) * 1000, 2),
+        ]);
 
         return response()->json([
             'message' => $message,

@@ -92,7 +92,7 @@ button {
     display: flex;
     align-items: center;
     gap: 11px;
-    padding: 13px;
+    padding: 4px;
     background: #fff;
     border: 1px solid var(--line);
     border-radius: 15px;
@@ -124,7 +124,8 @@ button {
     height: 8px;
     background: #27c78a;
     border-radius: 50%;
-    box-shadow: 0 0 0 3px #27c78a1c
+    box-shadow: 0 0 0 3px #27c78a1c;
+    margin-right: 20px;
 }
 
 .search-label {
@@ -313,7 +314,6 @@ button {
     height: 39px;
     width: 39px;
     flex: 0 0 39px;
-    border-radius: 13px;
     display: grid;
     place-items: center;
     font-size: 11px;
@@ -1079,11 +1079,14 @@ button {
 }
 
 .call-avatar {
-    margin: 5px auto 22px;
-    height: 72px;
-    width: 72px;
-    border-radius: 24px;
-    font-size: 18px
+    margin-left: 10px;
+    height: 40px;
+    width: 40px;
+    min-width: 40px;
+    flex: 0 0 40px;
+    border-radius: 50px;
+    font-size: 12px;
+    overflow: hidden;
 }
 
 .call-modal-card h2 {
@@ -1497,4 +1500,107 @@ button {
     justify-content: center;
     border-radius: 50%;
     font-size: 11px;
+}
+
+#chatView:not(.hidden) {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+#chatView:not(.hidden) #messageForm {
+    display: flex;
+    flex-shrink: 0;
+    visibility: visible;
+    opacity: 1;
+}
+
+#messageArea {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+
+
+
+/* Fix chat layout: keep composer visible and scroll messages only */
+html,
+body {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+.app-shell {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.main-panel {
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+#chatView:not(.hidden) {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+#chatView .chat-header,
+#chatView .encryption-note,
+#chatView #messageForm,
+#chatView .composer-hint {
+    flex-shrink: 0;
+}
+
+#chatView #messageArea {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/* Keep the composer visible even when messages are long */
+#chatView #messageForm {
+    position: relative;
+    z-index: 2;
+    flex-shrink: 0;
+    margin-bottom: 0;
+    background: #fff;
+}
+
+#chatView .composer-hint {
+    padding-bottom: 12px;
+    background: #fff;
+}
+
+@media (max-height: 650px) {
+    .app-shell {
+        min-height: 0;
+    }
+
+    #chatView .chat-header {
+        height: 65px;
+    }
+
+    #chatView .encryption-note {
+        height: 32px;
+    }
+
+    #chatView .composer-hint {
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
 }

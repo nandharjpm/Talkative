@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -19,9 +20,76 @@ class AuthController extends Controller
         $this->user = new User;
     }
 
-    public function showLogin(){
+    public function showLogin()
+    {
         return view('auth.login');
     }
+
+    public function showRegister(Request $request)
+    {
+        return view('auth.register');
+    }
+
+
+
+    public function register(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|max:255|unique:users,email',
+            'name' => 'required|string|max:255',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $username = Str::slug(explode('@', $request->email)[0]);
+        $username = $username ?: 'user';
+
+        $originalUsername = $username;
+        $count = 1;
+
+        while (DB::table('users')->where('username', $username)->exists()) {
+            $username = $originalUsername . $count;
+            $count++;
+        }
+
+        $userId = DB::table('users')->insertGetId([
+            'name' => $request->name,
+            'email' => $request->email,
+            'username' => $username,
+            'google_id' => null,
+            'password' => Hash::make($request->password),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $user = User::findOrFail($userId);
+
+        Auth::login($user);
+
+        $request->session()->regenerate();
+
+        return redirect()->route('chat.index');
+    }
+
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|string',
+        ]);
+
+        if (Auth::attempt($request->only('email', 'password'))) {
+            $request->session()->regenerate();
+
+            return redirect()->route('chat.index');
+        }
+
+        return back()
+            ->withErrors([
+                'email' => 'Invalid email or password.',
+            ])
+            ->onlyInput('email');
+    }
+
 
     public function redirectToGoogle()
     {
