@@ -51,6 +51,12 @@
                 </span>
             </button>
 
+            <button type="button" class="nav-item" id="talkiNavButton">
+                <span><i class="fa-solid fa-robot"></i></span>
+                Talki AI
+                <span class="nav-count">AI</span>
+            </button>
+
             <button type="button" class="nav-item" data-view="requests">
                 <span><i class="fa-regular fa-hand"></i></span>
                 Chat requests
@@ -115,6 +121,37 @@
 
             <button type="button" class="icon-button" aria-label="More options">...</button>
         </header>
+
+
+        <section class="talki-view hidden" id="talkiView" data-history-url="{{ route('talki.history') }}" data-message-url="{{ route('talki.message') }}">
+            <header class="talki-header">
+                <div class="avatar avatar-self">
+                    <i class="fa-solid fa-robot"></i>
+                </div>
+                <div>
+                    <h1>Talki</h1>
+                    <p>Your friendly AI companion</p>
+                </div>
+            </header>
+
+            <div class="talki-messages" id="talkiMessages" aria-live="polite">
+                <div class="talki-welcome">
+                    <h2>Hey, I'm Talki! 👋</h2>
+                    <p>I'm here to chat. What's on your mind?</p>
+                </div>
+            </div>
+
+            <form class="talki-composer" id="talkiForm">
+                <textarea id="talkiInput" rows="1" maxlength="4000" placeholder="Talk to Talki..." aria-label="Message Talki" required></textarea>
+
+                <button type="submit" id="talkiSendButton" class="send-button" aria-label="Send message">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </form>
+            <p class="talki-hint">Talki can make mistakes. Avoid sharing passwords or sensitive information.</p>
+        </section>
+
+
 
         <section class="chat-view hidden" id="chatView">
             <header class="chat-header">

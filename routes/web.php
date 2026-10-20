@@ -9,6 +9,7 @@ use App\Http\Controllers\MessageAttachmentController;
 use App\Http\Controllers\ChatRequestController;
 use App\Http\Controllers\UserSearchController;
 use App\Http\Controllers\CallController;
+use App\Http\Controllers\TalkiController;
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -25,7 +26,7 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('/', fn () => redirect()->route('chat.index'));
+    Route::get('/', fn() => redirect()->route('chat.index'));
 
     Route::get('/chat', [ConversationController::class, 'index'])
         ->name('chat.index');
@@ -59,4 +60,12 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logout'])
         ->name('logout');
+
+    Route::prefix('talki')->name('talki.')->middleware('throttle:20,1')->group(function () {
+        Route::get('/history', [TalkiController::class, 'history'])
+            ->name('history');
+
+        Route::post('/message', [TalkiController::class, 'send'])
+            ->name('message');
+    });
 });

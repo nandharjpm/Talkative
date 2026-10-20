@@ -12,6 +12,7 @@
 
     <script src="{{ asset('js/vendor/jquery-3.7.1.min.js') }}"></script>
     <script src="{{ asset('js/chat.js') }}"></script>
+    <script src="{{ asset('js/talki.js') }}"></script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>

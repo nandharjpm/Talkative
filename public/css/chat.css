@@ -1604,3 +1604,137 @@ body {
         padding-bottom: 5px;
     }
 }
+
+.talki-view {
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    background: #f8f9ff;
+}
+
+.talki-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e6e8f2;
+    background: #fff;
+}
+
+.talki-header h1 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.talki-header p {
+    margin: 4px 0 0;
+    color: #78819a;
+    font-size: 12px;
+}
+
+.talki-messages {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 24px;
+}
+
+.talki-welcome {
+    margin: auto;
+    text-align: center;
+    color: #727b95;
+}
+
+.talki-welcome h2 {
+    color: #252b43;
+    font-size: 22px;
+}
+
+.talki-message {
+    max-width: min(78%, 620px);
+    padding: 12px 15px;
+    border-radius: 16px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.talki-user {
+    align-self: flex-end;
+    background: #6268ee;
+    color: #fff;
+    border-bottom-right-radius: 5px;
+}
+
+.talki-assistant {
+    align-self: flex-start;
+    background: #fff;
+    color: #252b43;
+    border: 1px solid #e8eaf3;
+    border-bottom-left-radius: 5px;
+}
+
+.talki-typing {
+    color: #7b8399;
+    font-style: italic;
+}
+
+.talki-composer {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    padding: 14px 20px;
+    background: #fff;
+    border-top: 1px solid #e6e8f2;
+}
+
+.talki-composer textarea {
+    flex: 1;
+    min-width: 0;
+    max-height: 140px;
+    resize: vertical;
+    border: 1px solid #e0e4f0;
+    border-radius: 14px;
+    padding: 12px 14px;
+    font: inherit;
+    outline: none;
+}
+
+.talki-composer textarea:focus {
+    border-color: #6268ee;
+}
+
+.talki-composer button:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+}
+
+.talki-hint {
+    margin: 0;
+    padding: 0 20px 12px;
+    background: #fff;
+    color: #8990a5;
+    font-size: 11px;
+}
+
+@media (max-width: 600px) {
+    .talki-header {
+        padding: 16px;
+    }
+
+    .talki-messages {
+        padding: 16px;
+    }
+
+    .talki-message {
+        max-width: 90%;
+    }
+
+    .talki-composer {
+        padding: 10px;
+    }
+}
