@@ -69,7 +69,7 @@ class MessageAttachmentController extends Controller
 
         }catch(Exception $ex){
             Storage::disk('public')->delete($filePath);
-            Log::error('Message Attachment Error :', $ex);
+            Log::error('Message Attachment Error :', [$ex]);
         }
 
         return response()->json([

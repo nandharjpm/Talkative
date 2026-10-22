@@ -206,25 +206,31 @@
         <div class="logo">T</div>
 
         <h1>Welcome to Talkative</h1>
-        <form action="{{route('login.submit')}}">
+
+        <form action="{{ route('login.submit') }}" method="POST">
+            @csrf
+
             <div>
-                <label for="username">Email</label>
-                <input type="text" name="user_name">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" value="{{ old('email') }}" required>
             </div>
+
             <div>
-                <label for="username">Password</label>
-                <input type="password" name="password">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
             </div>
-            <button>
-                <a href="{{ route('google.redirect') }}" class="google-button">
-                    Continue with Google
-                </a>
+
+            <button type="submit">
+                Login
             </button>
-            <button>
-                <a href="{{route('login.submit')}}">Login</a>
-            </button>
-            <a href="{{route('register')}}">Create an Account</a>
+
+            <a href="{{ route('google.redirect') }}" class="google-button">
+                Continue with Google
+            </a>
+
+            <a href="{{ route('register') }}">Create an Account</a>
         </form>
+
         <p>Sign in to start private conversations with your friends.</p>
 
         @if ($errors->has('google'))

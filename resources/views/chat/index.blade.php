@@ -136,7 +136,7 @@
 
             <div class="talki-messages" id="talkiMessages" aria-live="polite">
                 <div class="talki-welcome">
-                    <h2>Hey, I'm Talki! 👋</h2>
+                    <h2>Hey, I'm Talki! </h2>
                     <p>I'm here to chat. What's on your mind?</p>
                 </div>
             </div>
@@ -150,8 +150,6 @@
             </form>
             <p class="talki-hint">Talki can make mistakes. Avoid sharing passwords or sensitive information.</p>
         </section>
-
-
 
         <section class="chat-view hidden" id="chatView">
             <header class="chat-header">

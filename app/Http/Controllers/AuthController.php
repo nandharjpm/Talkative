@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -29,7 +31,6 @@ class AuthController extends Controller
     {
         return view('auth.register');
     }
-
 
 
     public function register(Request $request)
@@ -72,24 +73,30 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string',
-        ]);
 
-        if (Auth::attempt($request->only('email', 'password'))) {
-            $request->session()->regenerate();
+        try {
+            $validated = $request->validate([
+                'email' => ['required', 'string', 'max:100'],
+                'password' => ['required', 'string', 'min:8'],
+            ]);
 
-            return redirect()->route('chat.index');
+            $credentials = [
+                'email' => $validated['email'],
+                'password' => $validated['password'],
+            ];
+
+            $remember = $request->boolean('remember');
+
+            if (Auth::attempt($credentials, $remember)) {
+                $request->session()->regenerate();
+                return redirect()->route('chat.index');
+            }
+            return back()->withErrors(['email' => 'The provided email or password is incorrect',])->onlyInput('email');
+        } catch (Exception $ex) {
+            Log::error('Authentication Failed', [$ex]);
+            return redirect()->back();
         }
-
-        return back()
-            ->withErrors([
-                'email' => 'Invalid email or password.',
-            ])
-            ->onlyInput('email');
     }
-
 
     public function redirectToGoogle()
     {
